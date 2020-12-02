@@ -88,7 +88,7 @@ class PDFOutput:
         fin.write(content)
         fin.close()
         command = ["mdpdf", "-o", self.output_file, "--header", "{date},,{page}", md_file]
-        proc = subprocess.Popen(command, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+        proc = subprocess.Popen(command, shell=False)
         proc.wait()
         return self.output_file
         

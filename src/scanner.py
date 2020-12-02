@@ -45,7 +45,7 @@ class Scanner:
 
         process_list = []
         for command in commands:
-            process_list.append(subprocess.Popen(command, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL))
+            process_list.append(subprocess.Popen(command, shell=False))
         
         for proc in process_list:
             while proc.poll() is None:
