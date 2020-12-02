@@ -50,8 +50,8 @@ def save_config(data):
         json.dump(data, write_file, indent=4)
 
 
-def get_shecluded_from_config(cfg):
-    return int(config["scanConfig"]["shecludedScanParams"]["days_interval"]), int(config["scanConfig"]["shecludedScanParams"]["hours"]), int(config["scanConfig"]["shecludedScanParams"]["minutes"])
+def get_schedule_from_config(cfg):
+    return int(config["scanConfig"]["scheduleScanParams"]["days_interval"]), int(config["scanConfig"]["scheduleScanParams"]["hours"]), int(config["scanConfig"]["scheduleScanParams"]["minutes"])
 
 
 def get_seconds_till_next_scan(daysInterval, hours, minutes):
@@ -63,10 +63,10 @@ def get_seconds_till_next_scan(daysInterval, hours, minutes):
 
 def sheclude_next_scan():
     global config, timer
-    if "shecludedScanParams" in config["scanConfig"]:
+    if "scheduleScanParams" in config["scanConfig"]:
         if not timer is None and timer.is_alive():
             timer.cancel()
-        timer = Timer(get_seconds_till_next_scan(*get_shecluded_from_config(config)), run_scan_by_timer)
+        timer = Timer(get_seconds_till_next_scan(*get_schedule_from_config(config)), run_scan_by_timer)
         print("Timer started")
         timer.start()
     else:
@@ -103,7 +103,7 @@ def start_message(message):
         print(ex)
 
 
-@bot.message_handler(commands=['sheclude'])
+@bot.message_handler(commands=['schedule'])
 def sheclude_scans(message):
     global config, timer
     try:
@@ -112,11 +112,11 @@ def sheclude_scans(message):
                 if not timer is None:
                     timer.cancel()
                     timer = None
-                    config["scanConfig"].pop("shecludedScanParams", None)
+                    config["scanConfig"].pop("scheduleScanParams", None)
                     save_config(config)
                 bot.send_message(message.chat.id, "Regular scans disabled!")
             else:
-                processing_ready = message.text.strip().replace("/sheclude ", "")
+                processing_ready = message.text.strip().replace("/schedule ", "")
                 hours = int(processing_ready.split(":")[0])
                 minutes = int(processing_ready.split(":")[1].split(" ")[0])
                 interval_days = int(processing_ready.split(":")[1].split(" ")[1])
@@ -127,10 +127,10 @@ def sheclude_scans(message):
                 elif interval_days < 0 or interval_days > 120:
                     bot.send_message(message.chat.id, "Invalid days interval value provided!")
                 else:
-                    config["scanConfig"]["shecludedScanParams"] = {}
-                    config["scanConfig"]["shecludedScanParams"]["days_interval"] = interval_days
-                    config["scanConfig"]["shecludedScanParams"]["hours"] = hours
-                    config["scanConfig"]["shecludedScanParams"]["minutes"] = minutes
+                    config["scanConfig"]["scheduleScanParams"] = {}
+                    config["scanConfig"]["scheduleScanParams"]["days_interval"] = interval_days
+                    config["scanConfig"]["scheduleScanParams"]["hours"] = hours
+                    config["scanConfig"]["scheduleScanParams"]["minutes"] = minutes
                     sheclude_next_scan()
                     save_config(config)
                     bot.send_message(message.chat.id, "Params applyed! Scan will be launched every {0} days at {1}:{2}".format(interval_days, hours, minutes))
